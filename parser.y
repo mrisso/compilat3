@@ -1,4 +1,4 @@
-	/* TRABALHO 2 DE COMPILADORES - MATHEUS HEMERLY RISSO */
+	/* TRABALHO 3 DE COMPILADORES - MATHEUS HEMERLY RISSO */
 
 /* Opções do Bison: */
 %output "parser.c"
@@ -70,7 +70,7 @@ func-decl-list : func-decl-list func-decl | func-decl;
 
 func-decl : func-header func-body{scope++;};
 
-func-header : ret-type ID LPAREN params RPAREN{newFunc($<str>2,arity); arity=0;}; //Criação de uma nova função
+func-header : ret-type ID LPAREN params RPAREN{newFunc($<str>2,arity); arity=0; free($<str>2);}; //Criação de uma nova função
 
 func-body : LBRACE opt-var-decl opt-stmt-list RBRACE;
 
@@ -84,11 +84,11 @@ params : VOID | param-list;
 
 param-list : param-list COMMA param | param;
 
-param : INT ID {newVar($<str>2, 0); arity++;}| INT ID LBRACK RBRACK{newVar($<str>2, -1); arity++;};
+param : INT ID {newVar($<str>2, 0); arity++; free($<str>2); }| INT ID LBRACK RBRACK{newVar($<str>2, -1); arity++; free($<str>2);};
 
 var-decl-list : var-decl-list var-decl | var-decl;
 
-var-decl : INT ID SEMI {newVar($<str>2, 0);} | INT ID LBRACK NUM RBRACK SEMI {newVar($<str>2,$<num>4);};
+var-decl : INT ID SEMI {newVar($<str>2, 0); free($<str>2);} | INT ID LBRACK NUM RBRACK SEMI {newVar($<str>2,$<num>4); free($<str>2);};
 
 stmt-list : stmt-list stmt | stmt;
 
@@ -96,7 +96,7 @@ stmt : assign-stmt | if-stmt | while-stmt | return-stmt | func-call SEMI;
 
 assign-stmt : lval ASSIGN arith-expr SEMI;
 
-lval : ID {searchVar($<str>1);} | ID LBRACK NUM RBRACK {searchVar($<str>1);} | ID LBRACK ID RBRACK {searchVar($<str>1);};
+lval : ID {searchVar($<str>1); free($<str>1);} | ID LBRACK NUM RBRACK {searchVar($<str>1); free($<str>1);} | ID LBRACK ID RBRACK {searchVar($<str>1); searchVar($<str>3); free($<str>1); free($<str>3);};
 
 if-stmt : IF LPAREN bool-expr RPAREN block | IF LPAREN bool-expr RPAREN block ELSE block;
 
@@ -114,7 +114,7 @@ output-call : OUTPUT LPAREN arith-expr RPAREN;
 
 write-call : WRITE LPAREN STRING RPAREN;
 
-user-func-call : ID LPAREN opt-arg-list RPAREN{searchFunc($<str>1,arg); arg=0;};
+user-func-call : ID LPAREN opt-arg-list RPAREN{searchFunc($<str>1,arg); arg=0; free($<str>1);};
 
 opt-arg-list : %empty | arg-list;
 
